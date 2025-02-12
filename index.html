@@ -3,18 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlopperTest v1.2</title>
+    <title>FlopperTest InDev</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 h-screen flex flex-col items-center justify-center overflow-hidden relative transition-colors">
-    <div class="absolute top-4 right-4">
-        <button onclick="toggleTheme()" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg shadow transition-colors hover:bg-gray-300 dark:hover:bg-gray-600">
-            <span class="dark:hidden">🌙</span>
-            <span class="hidden dark:inline">☀️</span>
+<body class="bg-gray-100 dark:bg-[#1b1919] h-screen flex flex-col items-center justify-center overflow-hidden relative transition-colors">
+    <div class="absolute top-4 right-4 z-50">
+        <button onclick="toggleSettings()" class="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white px-4 py-2 rounded-lg shadow transition-colors hover:bg-gray-300 dark:hover:bg-gray-700">
+            ⚙️
         </button>
+        <div id="settingsMenu" class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg transform scale-95 opacity-0 pointer-events-none transition-all duration-200 origin-top-right">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-800 dark:text-white dark:hidden">Dark Mode</span>
+                    <span class="text-gray-800 dark:text-white hidden dark:inline">Light Mode</span>
+                    <button onclick="toggleTheme()" class="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-1 rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700">
+                        <span class="dark:hidden">🌙</span>
+                        <span class="hidden dark:inline">☀️</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center transition-colors">
-        <div class="text-2xl mb-5 text-gray-800 dark:text-gray-200">are you a fish?</div>
+    <div class="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-lg text-center transition-colors">
+        <div class="text-2xl mb-5 text-gray-800 dark:text-white">are you a fish?</div>
         <div class="flex gap-4 justify-center">
             <button onclick="showResult(true)" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded transition-colors">
                 yes
@@ -28,7 +44,7 @@
                 reset
             </button>
         </div>
-        <div id="result" class="mt-5 font-bold text-xl opacity-0 transition-opacity duration-500"></div>
+        <div id="result" class="mt-5 font-bold text-xl opacity-0 transition-opacity duration-500 text-gray-900 dark:text-white"></div>
     </div>
 
     <audio id="lieAudio" src="public/audio.mp3"></audio>
@@ -41,6 +57,24 @@
         } else {
             document.documentElement.classList.remove('dark')
         }
+
+        function toggleSettings() {
+            const menu = document.getElementById('settingsMenu');
+            menu.classList.toggle('scale-95');
+            menu.classList.toggle('scale-100');
+            menu.classList.toggle('opacity-0');
+            menu.classList.toggle('opacity-100');
+            menu.classList.toggle('pointer-events-none');
+        }
+
+        // Close settings menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('settingsMenu');
+            const settingsButton = document.querySelector('button[onclick="toggleSettings()"]');
+            if (!menu.contains(e.target) && !settingsButton.contains(e.target) && !menu.classList.contains('opacity-0')) {
+                toggleSettings();
+            }
+        });
 
         function toggleTheme() {
             if (document.documentElement.classList.contains('dark')) {
@@ -57,7 +91,7 @@
                 this.element = document.createElement('div');
                 this.element.textContent = 'LIE';
                 this.element.className = 'absolute text-8xl font-bold text-red-600 pointer-events-none';
-                const container = document.querySelector('.bg-white');
+                const container = document.querySelector('[class*="bg-white"]');
                 const containerRect = container.getBoundingClientRect();
                 const margin = 100; // Safe distance from container
                 
@@ -93,7 +127,7 @@
                         this.element.remove();
                         return;
                     }
-                    const container = document.querySelector('.bg-white');
+                    const container = document.querySelector('[class*="bg-white"]');
                     const containerRect = container.getBoundingClientRect();
 
                     // Calculate next position
@@ -150,7 +184,7 @@
                 this.element = document.createElement('div');
                 this.element.textContent = '🐠';
                 this.element.className = 'absolute text-8xl pointer-events-none';
-                const container = document.querySelector('.bg-white');
+                const container = document.querySelector('[class*="bg-white"]');
                 const containerRect = container.getBoundingClientRect();
                 const margin = 100; // Safe distance from container
                 
@@ -296,10 +330,10 @@
 
             // Remove all flying LIE elements and their animations
             document.querySelectorAll('div').forEach(element => {
-                if (element.textContent === 'LIE' && element.classList.contains('text-8xl')) {
-                    const bouncingLie = element.bouncingLieInstance;
-                    if (bouncingLie && bouncingLie.cleanup) {
-                        bouncingLie.cleanup();
+                if ((element.textContent === 'LIE' || element.textContent === '🐠') && element.classList.contains('text-8xl')) {
+                    const instance = element.bouncingLieInstance || element.fishExplosionInstance;
+                    if (instance && instance.cleanup) {
+                        instance.cleanup();
                     } else {
                         element.remove();
                     }
