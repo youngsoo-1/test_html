@@ -3,34 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlopperTest InDev</title>
+    <title>FlopperTest v1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class'
-        }
-    </script>
 </head>
-<body class="bg-gray-100 dark:bg-[#1b1919] h-screen flex flex-col items-center justify-center overflow-hidden relative transition-colors">
-    <div class="absolute top-4 right-4 z-50">
-        <button onclick="toggleSettings()" class="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white px-4 py-2 rounded-lg shadow transition-colors hover:bg-gray-300 dark:hover:bg-gray-700">
-            ⚙️
-        </button>
-        <div id="settingsMenu" class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg transform scale-95 opacity-0 pointer-events-none transition-all duration-200 origin-top-right">
-            <div class="p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-gray-800 dark:text-white dark:hidden">Dark Mode</span>
-                    <span class="text-gray-800 dark:text-white hidden dark:inline">Light Mode</span>
-                    <button onclick="toggleTheme()" class="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-1 rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700">
-                        <span class="dark:hidden">🌙</span>
-                        <span class="hidden dark:inline">☀️</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-lg text-center transition-colors">
-        <div class="text-2xl mb-5 text-gray-800 dark:text-white">are you a fish?</div>
+<body class="bg-gray-100 h-screen flex flex-col items-center justify-center overflow-hidden relative">
+    <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+        <div class="text-2xl mb-5 text-gray-800">are you a fish?</div>
         <div class="flex gap-4 justify-center">
             <button onclick="showResult(true)" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded transition-colors">
                 yes
@@ -44,67 +22,20 @@
                 reset
             </button>
         </div>
-        <div id="result" class="mt-5 font-bold text-xl opacity-0 transition-opacity duration-500 text-gray-900 dark:text-white"></div>
+        <div id="result" class="mt-5 font-bold text-xl opacity-0 transition-opacity duration-500"></div>
     </div>
 
-    <audio id="lieAudio" src="public/audio.mp3"></audio>
-    <audio id="correctAudio" src="public/correct-answer-sound.mp3"></audio>
-    <audio id="fishyAudio" src="public/fishy.mp3"></audio>
+    <audio id="lieAudio" src="assets/audio.mp3"></audio>
+    <audio id="audio2" src="assets/audio2.mp3"></audio>
+    <audio id="audio3" src="assets/audio3.mp3"></audio>
     <script>
-        // Check for saved theme preference or default to light
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark')
-        } else {
-            document.documentElement.classList.remove('dark')
-        }
-
-        function toggleSettings() {
-            const menu = document.getElementById('settingsMenu');
-            menu.classList.toggle('scale-95');
-            menu.classList.toggle('scale-100');
-            menu.classList.toggle('opacity-0');
-            menu.classList.toggle('opacity-100');
-            menu.classList.toggle('pointer-events-none');
-        }
-
-        // Close settings menu when clicking outside
-        document.addEventListener('click', (e) => {
-            const menu = document.getElementById('settingsMenu');
-            const settingsButton = document.querySelector('button[onclick="toggleSettings()"]');
-            if (!menu.contains(e.target) && !settingsButton.contains(e.target) && !menu.classList.contains('opacity-0')) {
-                toggleSettings();
-            }
-        });
-
-        function toggleTheme() {
-            if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark')
-                localStorage.theme = 'light'
-            } else {
-                document.documentElement.classList.add('dark')
-                localStorage.theme = 'dark'
-            }
-        }
-
         class BouncingLie {
             constructor() {
-                this.element = document.createElement('div');
-                this.element.textContent = 'LIE';
-                this.element.className = 'absolute text-8xl font-bold text-red-600 pointer-events-none';
-                const container = document.querySelector('[class*="bg-white"]');
-                const containerRect = container.getBoundingClientRect();
-                const margin = 100; // Safe distance from container
-                
-                // Calculate spawn position ensuring it's outside the container
-                do {
-                    this.x = Math.random() * (window.innerWidth - 200);
-                    this.y = Math.random() * (window.innerHeight - 200);
-                } while (
-                    this.x + 100 > containerRect.left - margin && 
-                    this.x < containerRect.right + margin && 
-                    this.y + 100 > containerRect.top - margin && 
-                    this.y < containerRect.bottom + margin
-                );
+                this.element = document.createElement('img');
+                this.element.src = 'assets/flopper.png';
+                this.element.className = 'absolute w-24 h-24 pointer-events-none';
+                this.x = Math.random() * (window.innerWidth - 200);
+                this.y = Math.random() * (window.innerHeight - 200);
                 // Ensure minimum speed of 15 in both directions
                 const getRandomSpeed = () => (Math.random() * 2 - 1) * 15;
                 this.dx = getRandomSpeed();
@@ -127,7 +58,7 @@
                         this.element.remove();
                         return;
                     }
-                    const container = document.querySelector('[class*="bg-white"]');
+                    const container = document.querySelector('.bg-white');
                     const containerRect = container.getBoundingClientRect();
 
                     // Calculate next position
@@ -135,17 +66,17 @@
                     let nextY = this.y + this.dy;
 
                     // Check collision with container
-                    const textWidth = 100; // Approximate width of "LIE" text
-                    const textHeight = 100; // Approximate height of "LIE" text
+                    const imageWidth = 96; // Width of flopper image (w-24 = 96px)
+                    const imageHeight = 96; // Height of flopper image (h-24 = 96px)
 
                     // Collision with container boundaries
-                    if (nextX + textWidth > containerRect.left && nextX < containerRect.right &&
-                        nextY + textHeight > containerRect.top && nextY < containerRect.bottom) {
+                    if (nextX + imageWidth > containerRect.left && nextX < containerRect.right &&
+                        nextY + imageHeight > containerRect.top && nextY < containerRect.bottom) {
                         // Determine which side was hit and reverse appropriate velocity
-                        if (this.x + textWidth <= containerRect.left || this.x >= containerRect.right) {
+                        if (nextX + imageWidth > containerRect.left && nextX < containerRect.right) {
                             this.dx = -this.dx;
                         }
-                        if (this.y + textHeight <= containerRect.top || this.y >= containerRect.bottom) {
+                        if (nextY + imageHeight > containerRect.top && nextY < containerRect.bottom) {
                             this.dy = -this.dy;
                         }
                     }
@@ -155,10 +86,10 @@
                     this.y += this.dy;
 
                     // Screen boundary collision
-                    if (this.x <= 0 || this.x >= window.innerWidth - textWidth) {
+                    if (this.x <= 0 || this.x >= window.innerWidth - imageWidth) {
                         this.dx = -this.dx;
                     }
-                    if (this.y <= 0 || this.y >= window.innerHeight - textHeight) {
+                    if (this.y <= 0 || this.y >= window.innerHeight - imageHeight) {
                         this.dy = -this.dy;
                     }
 
@@ -179,89 +110,7 @@
             new BouncingLie();
         }
 
-        class FishExplosion {
-            constructor() {
-                this.element = document.createElement('div');
-                this.element.textContent = '🐠';
-                this.element.className = 'absolute text-8xl pointer-events-none';
-                const container = document.querySelector('[class*="bg-white"]');
-                const containerRect = container.getBoundingClientRect();
-                const margin = 100; // Safe distance from container
-                
-                // Calculate spawn position ensuring it's outside the container
-                do {
-                    this.x = Math.random() * window.innerWidth;
-                    this.y = Math.random() * window.innerHeight;
-                } while (
-                    this.x + 50 > containerRect.left - margin && 
-                    this.x < containerRect.right + margin && 
-                    this.y + 50 > containerRect.top - margin && 
-                    this.y < containerRect.bottom + margin
-                );
-                const speed = 15;
-                const angle = Math.random() * Math.PI * 2;
-                this.dx = Math.cos(angle) * speed;
-                this.dy = Math.sin(angle) * speed;
-                this.element.style.left = `${this.x}px`;
-                this.element.style.top = `${this.y}px`;
-                this.element.fishExplosionInstance = this;
-                document.body.appendChild(this.element);
-                this.animate();
-            }
-
-            animate() {
-                let isRunning = true;
-                const animate = () => {
-                    if (!isRunning) {
-                        this.element.remove();
-                        return;
-                    }
-
-                    this.x += this.dx;
-                    this.y += this.dy;
-
-                    // Add some wobble effect
-                    this.dy += 0.1; // Gravity effect
-                    
-                    // Screen boundary check
-                    if (this.x <= 0 || this.x >= window.innerWidth - 50) {
-                        this.dx = -this.dx * 0.8;
-                    }
-                    if (this.y <= 0 || this.y >= window.innerHeight - 50) {
-                        this.dy = -this.dy * 0.8;
-                    }
-
-                    this.element.style.left = `${this.x}px`;
-                    this.element.style.top = `${this.y}px`;
-                    requestAnimationFrame(animate);
-                };
-                animate();
-
-                // Add cleanup method
-                this.cleanup = () => {
-                    isRunning = false;
-                };
-
-                // Auto cleanup after some time
-                setTimeout(() => {
-                    this.cleanup();
-                }, 5000);
-            }
-        }
-
-        function createFishExplosion() {
-            new FishExplosion();
-        }
-
         function showResult(isYes) {
-            // Disable both buttons immediately to prevent double-clicks
-            const yesButton = document.querySelector('button[onclick="showResult(true)"]');
-            const noButton = document.querySelector('button[onclick="showResult(false)"]');
-            yesButton.disabled = true;
-            noButton.disabled = true;
-            yesButton.classList.add('opacity-50', 'cursor-not-allowed');
-            noButton.classList.add('opacity-50', 'cursor-not-allowed');
-
             const resultElement = document.getElementById('result');
             resultElement.textContent = isYes ? 'fishy flopper' : 'LIE DETECTED';
             resultElement.classList.remove('opacity-0');
@@ -269,22 +118,20 @@
             resultElement.classList.add('opacity-100');
 
             // Hide the unselected button
+            const yesButton = document.querySelector('button[onclick="showResult(true)"]');
+            const noButton = document.querySelector('button[onclick="showResult(false)"]');
             if (isYes) {
                 noButton.classList.add('hidden');
-                // Create fish explosion
-                for (let i = 0; i < 30; i++) {
-                    setTimeout(() => createFishExplosion(), i * 100);
-                }
             } else {
                 yesButton.classList.add('hidden');
             }
 
             if (isYes) {
-                const correctAudio = document.getElementById('correctAudio');
-                const fishyAudio = document.getElementById('fishyAudio');
-                correctAudio.play();
-                correctAudio.addEventListener('ended', () => {
-                    fishyAudio.play();
+                const audio2 = document.getElementById('audio2');
+                const audio3 = document.getElementById('audio3');
+                audio2.play();
+                audio2.addEventListener('ended', () => {
+                    audio3.play();
                 });
             } else {
                 const audio = document.getElementById('lieAudio');
@@ -311,32 +158,29 @@
             resultElement.classList.remove('opacity-100');
             resultElement.classList.add('opacity-0');
 
-            // Show both buttons and re-enable them
+            // Show both buttons
             const yesButton = document.querySelector('button[onclick="showResult(true)"]');
-             const noButton = document.querySelector('button[onclick="showResult(false)"]');
-            yesButton.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
-            noButton.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
-            yesButton.disabled = false;
-            noButton.disabled = false;
+            const noButton = document.querySelector('button[onclick="showResult(false)"]');
+            yesButton.classList.remove('hidden');
+            noButton.classList.remove('hidden');
 
             // Stop and reset all audio elements
             const lieAudio = document.getElementById('lieAudio');
-            const correctAudio = document.getElementById('correctAudio');
-            const fishyAudio = document.getElementById('fishyAudio');
-            [lieAudio, correctAudio, fishyAudio].forEach(audio => {
+            const audio2 = document.getElementById('audio2');
+            const audio3 = document.getElementById('audio3');
+            [lieAudio, audio2, audio3].forEach(audio => {
                 audio.pause();
                 audio.currentTime = 0;
             });
 
             // Remove all flying LIE elements and their animations
-            document.querySelectorAll('div').forEach(element => {
-                if ((element.textContent === 'LIE' || element.textContent === '🐠') && element.classList.contains('text-8xl')) {
-                    const instance = element.bouncingLieInstance || element.fishExplosionInstance;
-                    if (instance && instance.cleanup) {
-                        instance.cleanup();
-                    } else {
-                        element.remove();
+            document.querySelectorAll('img').forEach(element => {
+                if (element.src.includes('flopper.png')) {
+                    const bouncingLie = element.bouncingLieInstance;
+                    if (bouncingLie && bouncingLie.cleanup) {
+                        bouncingLie.cleanup();
                     }
+                    element.remove();
                 }
             });
 
