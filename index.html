@@ -29,6 +29,9 @@
     <audio id="audio2" src="assets/audio2.mp3"></audio>
     <audio id="audio3" src="assets/audio3.mp3"></audio>
     <script>
+        let fishCount = 0;
+        const maxFish = 10;
+
         class BouncingLie {
             constructor() {
                 this.element = document.createElement('img');
@@ -36,12 +39,9 @@
                 this.element.className = 'absolute w-24 h-24 pointer-events-none';
                 this.x = Math.random() * (window.innerWidth - 200);
                 this.y = Math.random() * (window.innerHeight - 200);
-                // Ensure minimum speed of 15 in both directions
                 const getRandomSpeed = () => (Math.random() * 2 - 1) * 15;
                 this.dx = getRandomSpeed();
                 this.dy = getRandomSpeed();
-                
-                // Ensure minimum absolute speed
                 if (Math.abs(this.dx) < 10) this.dx *= 1.5;
                 if (Math.abs(this.dy) < 10) this.dy *= 1.5;
                 this.element.style.left = `${this.x}px`;
@@ -60,19 +60,12 @@
                     }
                     const container = document.querySelector('.bg-white');
                     const containerRect = container.getBoundingClientRect();
-
-                    // Calculate next position
                     let nextX = this.x + this.dx;
                     let nextY = this.y + this.dy;
-
-                    // Check collision with container
-                    const imageWidth = 96; // Width of flopper image (w-24 = 96px)
-                    const imageHeight = 96; // Height of flopper image (h-24 = 96px)
-
-                    // Collision with container boundaries
+                    const imageWidth = 96;
+                    const imageHeight = 96;
                     if (nextX + imageWidth > containerRect.left && nextX < containerRect.right &&
                         nextY + imageHeight > containerRect.top && nextY < containerRect.bottom) {
-                        // Determine which side was hit and reverse appropriate velocity
                         if (nextX + imageWidth > containerRect.left && nextX < containerRect.right) {
                             this.dx = -this.dx;
                         }
@@ -80,26 +73,19 @@
                             this.dy = -this.dy;
                         }
                     }
-
-                    // Update position
                     this.x += this.dx;
                     this.y += this.dy;
-
-                    // Screen boundary collision
                     if (this.x <= 0 || this.x >= window.innerWidth - imageWidth) {
                         this.dx = -this.dx;
                     }
                     if (this.y <= 0 || this.y >= window.innerHeight - imageHeight) {
                         this.dy = -this.dy;
                     }
-
                     this.element.style.left = `${this.x}px`;
                     this.element.style.top = `${this.y}px`;
                     requestAnimationFrame(animate);
                 };
                 animate();
-
-                // Add cleanup method
                 this.cleanup = () => {
                     isRunning = false;
                 };
@@ -107,7 +93,10 @@
         }
 
         function createFlyingLie() {
-            new BouncingLie();
+            if (fishCount < maxFish) {
+                new BouncingLie();
+                fishCount++;
+            }
         }
 
         function showResult(isYes) {
@@ -116,8 +105,6 @@
             resultElement.classList.remove('opacity-0');
             void resultElement.offsetWidth;
             resultElement.classList.add('opacity-100');
-
-            // Hide the unselected button
             const yesButton = document.querySelector('button[onclick="showResult(true)"]');
             const noButton = document.querySelector('button[onclick="showResult(false)"]');
             if (isYes) {
@@ -125,7 +112,6 @@
             } else {
                 yesButton.classList.add('hidden');
             }
-
             if (isYes) {
                 const audio2 = document.getElementById('audio2');
                 const audio3 = document.getElementById('audio3');
@@ -146,27 +132,21 @@
                 };
                 playAudioRepeatedly();
             }
-
-            // Trigger the bouncing fish animation for both 'yes' and 'no'
             for (let i = 0; i < 10; i++) {
                 setTimeout(() => createFlyingLie(), i * 200);
             }
         }
 
         function resetAll() {
-            // Reset result text and ensure it's hidden
+            fishCount = 0;
             const resultElement = document.getElementById('result');
             resultElement.textContent = '';
             resultElement.classList.remove('opacity-100');
             resultElement.classList.add('opacity-0');
-
-            // Show both buttons
             const yesButton = document.querySelector('button[onclick="showResult(true)"]');
             const noButton = document.querySelector('button[onclick="showResult(false)"]');
             yesButton.classList.remove('hidden');
             noButton.classList.remove('hidden');
-
-            // Stop and reset all audio elements
             const lieAudio = document.getElementById('lieAudio');
             const audio2 = document.getElementById('audio2');
             const audio3 = document.getElementById('audio3');
@@ -174,8 +154,6 @@
                 audio.pause();
                 audio.currentTime = 0;
             });
-
-            // Remove all flying LIE elements and their animations
             document.querySelectorAll('img').forEach(element => {
                 if (element.src.includes('flopper.png')) {
                     const bouncingLie = element.bouncingLieInstance;
@@ -185,8 +163,6 @@
                     element.remove();
                 }
             });
-
-            // Clear any ongoing timeouts for audio or animations
             const highestTimeoutId = setTimeout(() => {});
             for (let i = 0; i < highestTimeoutId; i++) {
                 clearTimeout(i);
