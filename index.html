@@ -145,9 +145,11 @@
                     }
                 };
                 playAudioRepeatedly();
-                for (let i = 0; i < 10; i++) {
-                    setTimeout(() => createFlyingLie(), i * 200);
-                }
+            }
+
+            // Trigger the bouncing fish animation for both 'yes' and 'no'
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => createFlyingLie(), i * 200);
             }
         }
 
