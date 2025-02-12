@@ -1,10 +1,317 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>test_html</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlopperTest v1.2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>this is my test</h1>
-    <p>i am still learning html</p>
+<body class="bg-gray-100 dark:bg-gray-900 h-screen flex flex-col items-center justify-center overflow-hidden relative transition-colors">
+    <div class="absolute top-4 right-4">
+        <button onclick="toggleTheme()" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg shadow transition-colors hover:bg-gray-300 dark:hover:bg-gray-600">
+            <span class="dark:hidden">🌙</span>
+            <span class="hidden dark:inline">☀️</span>
+        </button>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center transition-colors">
+        <div class="text-2xl mb-5 text-gray-800 dark:text-gray-200">are you a fish?</div>
+        <div class="flex gap-4 justify-center">
+            <button onclick="showResult(true)" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded transition-colors">
+                yes
+            </button>
+            <button onclick="showResult(false)" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded transition-colors">
+                no
+            </button>
+        </div>
+        <div class="mt-4">
+            <button onclick="resetAll()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded transition-colors">
+                reset
+            </button>
+        </div>
+        <div id="result" class="mt-5 font-bold text-xl opacity-0 transition-opacity duration-500"></div>
+    </div>
+
+    <audio id="lieAudio" src="public/audio.mp3"></audio>
+    <audio id="correctAudio" src="public/correct-answer-sound.mp3"></audio>
+    <audio id="fishyAudio" src="public/fishy.mp3"></audio>
+    <script>
+        // Check for saved theme preference or default to light
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark')
+                localStorage.theme = 'light'
+            } else {
+                document.documentElement.classList.add('dark')
+                localStorage.theme = 'dark'
+            }
+        }
+
+        class BouncingLie {
+            constructor() {
+                this.element = document.createElement('div');
+                this.element.textContent = 'LIE';
+                this.element.className = 'absolute text-8xl font-bold text-red-600 pointer-events-none';
+                const container = document.querySelector('.bg-white');
+                const containerRect = container.getBoundingClientRect();
+                const margin = 100; // Safe distance from container
+                
+                // Calculate spawn position ensuring it's outside the container
+                do {
+                    this.x = Math.random() * (window.innerWidth - 200);
+                    this.y = Math.random() * (window.innerHeight - 200);
+                } while (
+                    this.x + 100 > containerRect.left - margin && 
+                    this.x < containerRect.right + margin && 
+                    this.y + 100 > containerRect.top - margin && 
+                    this.y < containerRect.bottom + margin
+                );
+                // Ensure minimum speed of 15 in both directions
+                const getRandomSpeed = () => (Math.random() * 2 - 1) * 15;
+                this.dx = getRandomSpeed();
+                this.dy = getRandomSpeed();
+                
+                // Ensure minimum absolute speed
+                if (Math.abs(this.dx) < 10) this.dx *= 1.5;
+                if (Math.abs(this.dy) < 10) this.dy *= 1.5;
+                this.element.style.left = `${this.x}px`;
+                this.element.style.top = `${this.y}px`;
+                this.element.bouncingLieInstance = this;
+                document.body.appendChild(this.element);
+                this.animate();
+            }
+
+            animate() {
+                let isRunning = true;
+                const animate = () => {
+                    if (!isRunning) {
+                        this.element.remove();
+                        return;
+                    }
+                    const container = document.querySelector('.bg-white');
+                    const containerRect = container.getBoundingClientRect();
+
+                    // Calculate next position
+                    let nextX = this.x + this.dx;
+                    let nextY = this.y + this.dy;
+
+                    // Check collision with container
+                    const textWidth = 100; // Approximate width of "LIE" text
+                    const textHeight = 100; // Approximate height of "LIE" text
+
+                    // Collision with container boundaries
+                    if (nextX + textWidth > containerRect.left && nextX < containerRect.right &&
+                        nextY + textHeight > containerRect.top && nextY < containerRect.bottom) {
+                        // Determine which side was hit and reverse appropriate velocity
+                        if (this.x + textWidth <= containerRect.left || this.x >= containerRect.right) {
+                            this.dx = -this.dx;
+                        }
+                        if (this.y + textHeight <= containerRect.top || this.y >= containerRect.bottom) {
+                            this.dy = -this.dy;
+                        }
+                    }
+
+                    // Update position
+                    this.x += this.dx;
+                    this.y += this.dy;
+
+                    // Screen boundary collision
+                    if (this.x <= 0 || this.x >= window.innerWidth - textWidth) {
+                        this.dx = -this.dx;
+                    }
+                    if (this.y <= 0 || this.y >= window.innerHeight - textHeight) {
+                        this.dy = -this.dy;
+                    }
+
+                    this.element.style.left = `${this.x}px`;
+                    this.element.style.top = `${this.y}px`;
+                    requestAnimationFrame(animate);
+                };
+                animate();
+
+                // Add cleanup method
+                this.cleanup = () => {
+                    isRunning = false;
+                };
+            }
+        }
+
+        function createFlyingLie() {
+            new BouncingLie();
+        }
+
+        class FishExplosion {
+            constructor() {
+                this.element = document.createElement('div');
+                this.element.textContent = '🐠';
+                this.element.className = 'absolute text-8xl pointer-events-none';
+                const container = document.querySelector('.bg-white');
+                const containerRect = container.getBoundingClientRect();
+                const margin = 100; // Safe distance from container
+                
+                // Calculate spawn position ensuring it's outside the container
+                do {
+                    this.x = Math.random() * window.innerWidth;
+                    this.y = Math.random() * window.innerHeight;
+                } while (
+                    this.x + 50 > containerRect.left - margin && 
+                    this.x < containerRect.right + margin && 
+                    this.y + 50 > containerRect.top - margin && 
+                    this.y < containerRect.bottom + margin
+                );
+                const speed = 15;
+                const angle = Math.random() * Math.PI * 2;
+                this.dx = Math.cos(angle) * speed;
+                this.dy = Math.sin(angle) * speed;
+                this.element.style.left = `${this.x}px`;
+                this.element.style.top = `${this.y}px`;
+                this.element.fishExplosionInstance = this;
+                document.body.appendChild(this.element);
+                this.animate();
+            }
+
+            animate() {
+                let isRunning = true;
+                const animate = () => {
+                    if (!isRunning) {
+                        this.element.remove();
+                        return;
+                    }
+
+                    this.x += this.dx;
+                    this.y += this.dy;
+
+                    // Add some wobble effect
+                    this.dy += 0.1; // Gravity effect
+                    
+                    // Screen boundary check
+                    if (this.x <= 0 || this.x >= window.innerWidth - 50) {
+                        this.dx = -this.dx * 0.8;
+                    }
+                    if (this.y <= 0 || this.y >= window.innerHeight - 50) {
+                        this.dy = -this.dy * 0.8;
+                    }
+
+                    this.element.style.left = `${this.x}px`;
+                    this.element.style.top = `${this.y}px`;
+                    requestAnimationFrame(animate);
+                };
+                animate();
+
+                // Add cleanup method
+                this.cleanup = () => {
+                    isRunning = false;
+                };
+
+                // Auto cleanup after some time
+                setTimeout(() => {
+                    this.cleanup();
+                }, 5000);
+            }
+        }
+
+        function createFishExplosion() {
+            new FishExplosion();
+        }
+
+        function showResult(isYes) {
+            // Disable both buttons immediately to prevent double-clicks
+            const yesButton = document.querySelector('button[onclick="showResult(true)"]');
+            const noButton = document.querySelector('button[onclick="showResult(false)"]');
+            yesButton.disabled = true;
+            noButton.disabled = true;
+            yesButton.classList.add('opacity-50', 'cursor-not-allowed');
+            noButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+            const resultElement = document.getElementById('result');
+            resultElement.textContent = isYes ? 'fishy flopper' : 'LIE DETECTED';
+            resultElement.classList.remove('opacity-0');
+            void resultElement.offsetWidth;
+            resultElement.classList.add('opacity-100');
+
+            // Hide the unselected button
+            if (isYes) {
+                noButton.classList.add('hidden');
+                // Create fish explosion
+                for (let i = 0; i < 30; i++) {
+                    setTimeout(() => createFishExplosion(), i * 100);
+                }
+            } else {
+                yesButton.classList.add('hidden');
+            }
+
+            if (isYes) {
+                const correctAudio = document.getElementById('correctAudio');
+                const fishyAudio = document.getElementById('fishyAudio');
+                correctAudio.play();
+                correctAudio.addEventListener('ended', () => {
+                    fishyAudio.play();
+                });
+            } else {
+                const audio = document.getElementById('lieAudio');
+                let playCount = 0;
+                const playAudioRepeatedly = () => {
+                    if (playCount < 5) {
+                        audio.currentTime = 0;
+                        audio.play();
+                        playCount++;
+                        setTimeout(playAudioRepeatedly, 1000);
+                    }
+                };
+                playAudioRepeatedly();
+                for (let i = 0; i < 10; i++) {
+                    setTimeout(() => createFlyingLie(), i * 200);
+                }
+            }
+        }
+
+        function resetAll() {
+            // Reset result text and ensure it's hidden
+            const resultElement = document.getElementById('result');
+            resultElement.textContent = '';
+            resultElement.classList.remove('opacity-100');
+            resultElement.classList.add('opacity-0');
+
+            // Show both buttons and re-enable them
+            const yesButton = document.querySelector('button[onclick="showResult(true)"]');
+             const noButton = document.querySelector('button[onclick="showResult(false)"]');
+            yesButton.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
+            noButton.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
+            yesButton.disabled = false;
+            noButton.disabled = false;
+
+            // Stop and reset all audio elements
+            const lieAudio = document.getElementById('lieAudio');
+            const correctAudio = document.getElementById('correctAudio');
+            const fishyAudio = document.getElementById('fishyAudio');
+            [lieAudio, correctAudio, fishyAudio].forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+            });
+
+            // Remove all flying LIE elements and their animations
+            document.querySelectorAll('div').forEach(element => {
+                if (element.textContent === 'LIE' && element.classList.contains('text-8xl')) {
+                    const bouncingLie = element.bouncingLieInstance;
+                    if (bouncingLie && bouncingLie.cleanup) {
+                        bouncingLie.cleanup();
+                    } else {
+                        element.remove();
+                    }
+                }
+            });
+
+            // Clear any ongoing timeouts for audio or animations
+            const highestTimeoutId = setTimeout(() => {});
+            for (let i = 0; i < highestTimeoutId; i++) {
+                clearTimeout(i);
+            }
+        }
+    </script>
 </body>
 </html>
