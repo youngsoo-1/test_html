@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -171,54 +171,56 @@
         }
 
         function showResult(isYes) {
-            // Add error handling for audio
-            const playAudioSafely = (audio) => {
-                audio.play().catch(error => {
-                    console.warn('Audio playback failed:', error);
-                });
-            };
-
-            if (isYes) {
-                const audio2 = document.getElementById('audio2');
-                const audio3 = document.getElementById('audio3');
-                
-                const onEnded = () => {
-                    playAudioSafely(audio3);
-                    audio2.removeEventListener('ended', onEnded);
-                };
-                
-                audio2.addEventListener('ended', onEnded);
-                playAudioSafely(audio2);
-            }
+            // Get buttons once
+            const yesButton = document.querySelector('button[onclick="showResult(true)"]');
+            const noButton = document.querySelector('button[onclick="showResult(false)"]');
+            
+            // Disable both buttons immediately
+            yesButton.disabled = true;
+            noButton.disabled = true;
+            yesButton.classList.add('opacity-50', 'cursor-not-allowed');
+            noButton.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Update result text
             const resultElement = document.getElementById('result');
             resultElement.textContent = isYes ? 'fishy flopper' : 'LIE DETECTED';
             resultElement.classList.remove('opacity-0');
             void resultElement.offsetWidth;
             resultElement.classList.add('opacity-100');
-            const yesButton = document.querySelector('button[onclick="showResult(true)"]');
-            const noButton = document.querySelector('button[onclick="showResult(false)"]');
+
+            // Hide appropriate button
             if (isYes) {
                 noButton.classList.add('hidden');
-            } else {
-                yesButton.classList.add('hidden');
-            }
-            if (isYes) {
                 const audio2 = document.getElementById('audio2');
                 const audio3 = document.getElementById('audio3');
-                audio2.play();
-                audio2.addEventListener('ended', () => {
-                    audio3.play();
+                
+                const onEnded = () => {
+                    audio3.play().catch(error => {
+                        console.warn('Audio playback failed:', error);
+                    });
+                    audio2.removeEventListener('ended', onEnded);
+                };
+                
+                audio2.addEventListener('ended', onEnded);
+                audio2.play().catch(error => {
+                    console.warn('Audio playback failed:', error);
                 });
+
+                // Create flying lies
                 for (let i = 0; i < 10; i++) {
                     setTimeout(() => createFlyingLie(), i * 200);
                 }
             } else {
+                yesButton.classList.add('hidden');
                 const audio = document.getElementById('lieAudio');
                 let playCount = 0;
+                
                 const playAudioRepeatedly = () => {
                     if (playCount < 5) {
                         audio.currentTime = 0;
-                        audio.play();
+                        audio.play().catch(error => {
+                            console.warn('Audio playback failed:', error);
+                        });
                         playCount++;
                         setTimeout(playAudioRepeatedly, 1000);
                     }
@@ -235,8 +237,10 @@
             resultElement.classList.add('opacity-0');
             const yesButton = document.querySelector('button[onclick="showResult(true)"]');
             const noButton = document.querySelector('button[onclick="showResult(false)"]');
-            yesButton.classList.remove('hidden');
-            noButton.classList.remove('hidden');
+            yesButton.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
+            noButton.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
+            yesButton.disabled = false;
+            noButton.disabled = false;
             const lieAudio = document.getElementById('lieAudio');
             const audio2 = document.getElementById('audio2');
             const audio3 = document.getElementById('audio3');
