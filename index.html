@@ -8,7 +8,8 @@
 </head>
 <body class="bg-gray-100 dark:bg-[#2f2f2f] h-screen flex flex-col items-center justify-center overflow-hidden relative transition-colors duration-300">
     <div class="absolute top-4 right-4">
-        <button onclick="toggleSettings()" class="bg-gray-200 dark:bg-[#343332] p-2 rounded-lg hover:bg-gray-300 dark:hover:bg-[#2f2f2f] transition-colors">
+        <button onclick="toggleSettings()" class="bg-gray-200 dark:bg-[#343332] p-2 rounded-lg hover:bg-gray-300 dark:hover:bg-[#2f2f2f] transition-colors"
+                aria-label="Settings">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -76,11 +77,24 @@
             }
         }
 
+        // Add click outside handler for settings menu
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('settingsMenu');
+            const settingsButton = document.querySelector('button[onclick="toggleSettings()"]');
+            if (!menu.contains(e.target) && !settingsButton.contains(e.target) && menu.classList.contains('scale-100')) {
+                toggleSettings();
+            }
+        });
+
         class BouncingLie {
             constructor() {
                 this.element = document.createElement('img');
                 this.element.src = 'assets/flopper.png';
                 this.element.className = 'absolute w-24 h-24 pointer-events-none';
+                this.element.alt = 'Bouncing fish';
+                this.element.addEventListener('error', () => {
+                    this.element.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
+                });
                 this.x = Math.random() * (window.innerWidth - 200);
                 this.y = Math.random() * (window.innerHeight - 200);
                 const getRandomSpeed = () => (Math.random() * 2 - 1) * 15;
@@ -102,19 +116,38 @@
                         this.element.remove();
                         return;
                     }
-                    const container = document.querySelector('.bg-white');
-                    const containerRect = container.getBoundingClientRect();
+                    const obstacles = [
+                        document.querySelector('.bg-white'),
+                        document.querySelector('.absolute.top-4.right-4')
+                    ];
+                    
                     let nextX = this.x + this.dx;
                     let nextY = this.y + this.dy;
                     const imageWidth = 96;
                     const imageHeight = 96;
-                    if (nextX + imageWidth > containerRect.left && nextX < containerRect.right &&
-                        nextY + imageHeight > containerRect.top && nextY < containerRect.bottom) {
-                        if (nextX + imageWidth > containerRect.left && nextX < containerRect.right) {
-                            this.dx = -this.dx;
-                        }
-                        if (nextY + imageHeight > containerRect.top && nextY < containerRect.bottom) {
-                            this.dy = -this.dy;
+                    
+                    for (const obstacle of obstacles) {
+                        const obstacleRect = obstacle.getBoundingClientRect();
+                        if (nextX + imageWidth > obstacleRect.left && nextX < obstacleRect.right &&
+                            nextY + imageHeight > obstacleRect.top && nextY < obstacleRect.bottom) {
+                            
+                            // Determine which side was hit
+                            const overlapLeft = nextX + imageWidth - obstacleRect.left;
+                            const overlapRight = obstacleRect.right - nextX;
+                            const overlapTop = nextY + imageHeight - obstacleRect.top;
+                            const overlapBottom = obstacleRect.bottom - nextY;
+                            
+                            // Find the smallest overlap
+                            const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+                            
+                            if (minOverlap === overlapLeft || minOverlap === overlapRight) {
+                                this.dx = -this.dx;
+                            }
+                            if (minOverlap === overlapTop || minOverlap === overlapBottom) {
+                                this.dy = -this.dy;
+                            }
+                            
+                            break;
                         }
                     }
                     this.x += this.dx;
@@ -144,6 +177,25 @@
         }
 
         function showResult(isYes) {
+            // Add error handling for audio
+            const playAudioSafely = (audio) => {
+                audio.play().catch(error => {
+                    console.warn('Audio playback failed:', error);
+                });
+            };
+
+            if (isYes) {
+                const audio2 = document.getElementById('audio2');
+                const audio3 = document.getElementById('audio3');
+                
+                const onEnded = () => {
+                    playAudioSafely(audio3);
+                    audio2.removeEventListener('ended', onEnded);
+                };
+                
+                audio2.addEventListener('ended', onEnded);
+                playAudioSafely(audio2);
+            }
             const resultElement = document.getElementById('result');
             resultElement.textContent = isYes ? 'fishy flopper' : 'LIE DETECTED';
             resultElement.classList.remove('opacity-0');
@@ -163,6 +215,9 @@
                 audio2.addEventListener('ended', () => {
                     audio3.play();
                 });
+                for (let i = 0; i < 10; i++) {
+                    setTimeout(() => createFlyingLie(), i * 200);
+                }
             } else {
                 const audio = document.getElementById('lieAudio');
                 let playCount = 0;
@@ -175,9 +230,6 @@
                     }
                 };
                 playAudioRepeatedly();
-            }
-            for (let i = 0; i < 10; i++) {
-                setTimeout(() => createFlyingLie(), i * 200);
             }
         }
 
