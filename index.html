@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -95,8 +95,21 @@
                 this.element.addEventListener('error', () => {
                     this.element.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
                 });
-                this.x = Math.random() * (window.innerWidth - 200);
-                this.y = Math.random() * (window.innerHeight - 200);
+                const container = document.querySelector('.bg-white');
+                const containerRect = container.getBoundingClientRect();
+                const imageWidth = 96;
+                const imageHeight = 96;
+                
+                // Keep generating random positions until we find one outside the central platform
+                do {
+                    this.x = Math.random() * (window.innerWidth - imageWidth);
+                    this.y = Math.random() * (window.innerHeight - imageHeight);
+                } while (
+                    this.x + imageWidth > containerRect.left && 
+                    this.x < containerRect.right && 
+                    this.y + imageHeight > containerRect.top && 
+                    this.y < containerRect.bottom
+                );
                 const getRandomSpeed = () => (Math.random() * 2 - 1) * 15;
                 this.dx = getRandomSpeed();
                 this.dy = getRandomSpeed();
@@ -116,38 +129,19 @@
                         this.element.remove();
                         return;
                     }
-                    const obstacles = [
-                        document.querySelector('.bg-white'),
-                        document.querySelector('.absolute.top-4.right-4')
-                    ];
-                    
+                    const container = document.querySelector('.bg-white');
+                    const containerRect = container.getBoundingClientRect();
                     let nextX = this.x + this.dx;
                     let nextY = this.y + this.dy;
                     const imageWidth = 96;
                     const imageHeight = 96;
-                    
-                    for (const obstacle of obstacles) {
-                        const obstacleRect = obstacle.getBoundingClientRect();
-                        if (nextX + imageWidth > obstacleRect.left && nextX < obstacleRect.right &&
-                            nextY + imageHeight > obstacleRect.top && nextY < obstacleRect.bottom) {
-                            
-                            // Determine which side was hit
-                            const overlapLeft = nextX + imageWidth - obstacleRect.left;
-                            const overlapRight = obstacleRect.right - nextX;
-                            const overlapTop = nextY + imageHeight - obstacleRect.top;
-                            const overlapBottom = obstacleRect.bottom - nextY;
-                            
-                            // Find the smallest overlap
-                            const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
-                            
-                            if (minOverlap === overlapLeft || minOverlap === overlapRight) {
-                                this.dx = -this.dx;
-                            }
-                            if (minOverlap === overlapTop || minOverlap === overlapBottom) {
-                                this.dy = -this.dy;
-                            }
-                            
-                            break;
+                    if (nextX + imageWidth > containerRect.left && nextX < containerRect.right &&
+                        nextY + imageHeight > containerRect.top && nextY < containerRect.bottom) {
+                        if (nextX + imageWidth > containerRect.left && nextX < containerRect.right) {
+                            this.dx = -this.dx;
+                        }
+                        if (nextY + imageHeight > containerRect.top && nextY < containerRect.bottom) {
+                            this.dy = -this.dy;
                         }
                     }
                     this.x += this.dx;
