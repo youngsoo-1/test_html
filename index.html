@@ -415,6 +415,7 @@
 
         function resetAll() {
             fishCount = 0;
+            textCount = 0;
             const resultElement = document.getElementById('result');
             resultElement.textContent = '';
             resultElement.classList.remove('opacity-100');
@@ -425,6 +426,12 @@
             noButton.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
             yesButton.disabled = false;
             noButton.disabled = false;
+            // Remove all bouncing LIE text elements
+            document.querySelectorAll('div').forEach(element => {
+                if (element.textContent === 'LIE' && element.classList.contains('absolute')) {
+                    element.remove();
+                }
+            });
             const lieAudio = document.getElementById('lieAudio');
             const audio2 = document.getElementById('audio2');
             const audio3 = document.getElementById('audio3');
