@@ -195,6 +195,47 @@
             }
         }
 
+        let pseCountdown = null;  // Move to global scope
+
+        function showPSEWarning() {
+            const warning = document.getElementById('pseWarning');
+            warning.classList.remove('hidden');
+            let countdown = 3;
+            
+            document.getElementById('pseCountdown').textContent = `If no action is done, the program will continue in ${countdown}...`;
+            
+            pseCountdown = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    document.getElementById('pseCountdown').textContent = `If no action is done, the program will continue in ${countdown}...`;
+                } else {
+                    clearInterval(pseCountdown);
+                    proceedWithPSE();
+                }
+            }, 1000);
+        }
+        
+        function proceedWithPSE() {
+            const warning = document.getElementById('pseWarning');
+            warning.classList.add('hidden');
+            if (pseCountdown) {
+                clearInterval(pseCountdown);
+            }
+            startRainbowEffect();
+        }
+        
+        function startRainbowEffect() {
+            const colors = [
+                '#FF0000', '#FF7F00', '#FFFF00', '#00FF00',
+                '#0000FF', '#4B0082', '#8B00FF'
+            ];
+            let colorIndex = 0;
+            window.rainbowInterval = setInterval(() => {
+                document.body.style.backgroundColor = colors[colorIndex];
+                colorIndex = (colorIndex + 1) % colors.length;
+            }, 200);
+        }
+
         function showResult(isYes) {
             // Get buttons once
             const yesButton = document.querySelector('button[onclick="showResult(true)"]');
@@ -226,35 +267,6 @@
                     } else {
                         proceedWithPSE();
                     }
-                    function showPSEWarning() {
-                        const warning = document.getElementById('pseWarning');
-                        const countdown = document.getElementById('pseCountdown');
-                        warning.classList.remove('hidden');
-                        let seconds = 3;
-                        countdown.textContent = `proceeding in ${seconds} seconds...`;
-                        window.pseCountdown = setInterval(() => {
-                            seconds--;
-                            if (seconds > 0) {
-                                countdown.textContent = `proceeding in ${seconds} seconds...`;
-                            } else {
-                                clearInterval(window.pseCountdown);
-                                proceedWithPSE();
-                            }
-                        }, 1000);
-                    }
-                    
-                    function proceedWithPSE() {
-                        document.getElementById('pseWarning').classList.add('hidden');
-                        let hue = 0;
-                        window.rainbowInterval = setInterval(() => {
-                            document.body.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
-                            hue = (hue + 10) % 360;
-                        }, 100);
-                    }
-                    // Create flying lies after showing warning
-                    for (let i = 0; i < 10; i++) {
-                        setTimeout(() => createFlyingLie(), i * 200);
-                    }
                 } else {
                     const onEnded = () => {
                         audio3.play().catch(error => {
@@ -268,7 +280,7 @@
                         console.warn('Audio playback failed:', error);
                     });
 
-                    // Create flying lies for normal mode
+                    // Create flying lies for normal mode only
                     for (let i = 0; i < 10; i++) {
                         setTimeout(() => createFlyingLie(), i * 200);
                     }
@@ -310,11 +322,13 @@
             }
             if (window.rainbowInterval) {
                 clearInterval(window.rainbowInterval);
+                window.rainbowInterval = null;
                 if (pseCountdown) {
                     clearInterval(pseCountdown);
+                    pseCountdown = null;
                 }
                 document.getElementById('pseWarning').classList.add('hidden');
-                document.body.style.backgroundColor = '';  // Reset to default
+                document.body.style.backgroundColor = '';
             }
         }
     </script>
