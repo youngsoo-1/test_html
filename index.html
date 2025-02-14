@@ -3,28 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlopperTest InDev</title>
+    <title>FlopperTest InDev v0.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 dark:bg-[#2f2f2f] h-screen flex flex-col items-center justify-center overflow-hidden relative transition-colors duration-300">
+<body class="bg-gray-100 h-screen flex flex-col items-center justify-center overflow-hidden relative transition-colors duration-300">
     <div class="absolute top-4 right-4">
-        <button onclick="toggleSettings()" class="bg-gray-200 dark:bg-[#343332] p-2 rounded-lg hover:bg-gray-300 dark:hover:bg-[#2f2f2f] transition-colors"
-                aria-label="Settings">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button onclick="toggleSettings()" class="bg-gray-200/60 p-2 rounded-lg hover:bg-gray-300/65 transition-colors" aria-label="Settings">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
         </button>
-        <div id="settingsMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-[#343332] rounded-lg shadow-lg p-4 transform scale-0 opacity-0 transition-all duration-200 origin-top-right">
+        <div id="settingsMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg p-4 transform scale-0 opacity-0 transition-all duration-200 origin-top-right">
             <div class="flex items-center justify-between">
-                <span class="text-gray-700 dark:text-gray-300">Dark Mode</span>
-                <button onclick="toggleDarkMode()" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none" id="darkModeToggle">
-                    <span class="absolute h-5 w-5 rounded-full transition-transform transform bg-white shadow-md" id="darkModeToggleKnob"></span>
+                <span class="text-gray-700">luca mode</span>
+                <button onclick="toggleLucaMode()" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none" id="lucaModeToggle">
+                    <span class="absolute h-5 w-5 rounded-full transition-transform transform bg-white shadow-md" id="lucaModeToggleKnob"></span>
                 </button>
             </div>
         </div>
     </div>
-    <div class="bg-white dark:bg-[#343332] p-8 rounded-lg shadow-lg text-center">
+    <div class="bg-white/60 p-8 rounded-lg shadow-lg text-center">
         <div class="text-2xl mb-5 text-gray-800">are you a fish?</div>
         <div class="flex gap-4 justify-center">
             <button onclick="showResult(true)" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded transition-colors">
@@ -42,12 +41,33 @@
         <div id="result" class="mt-5 font-bold text-xl opacity-0 transition-opacity duration-500"></div>
     </div>
 
+    <div id="pseWarning" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center" style="z-index: 9999;">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="flex items-center mb-4">
+                <svg class="w-6 h-6 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <h2 class="text-xl font-bold text-gray-900">photosensitivity warning</h2>
+            </div>
+            <p class="text-gray-700 mb-4">the following content contains flashing colors that may trigger seizures in people with photosensitive epilepsy.</p>
+            <p id="pseCountdown" class="text-sm text-gray-600 mb-4"></p>
+            <div class="flex justify-end gap-3">
+                <button onclick="window.location.reload()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors">
+                    cancel
+                </button>
+                <button onclick="proceedWithPSE()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                    proceed
+                </button>
+            </div>
+        </div>
+    </div>
     <audio id="lieAudio" src="assets/audio.mp3"></audio>
     <audio id="audio2" src="assets/audio2.mp3"></audio>
     <audio id="audio3" src="assets/audio3.mp3"></audio>
     <script>
         let fishCount = 0;
         const maxFish = 10;
+        let hasShownPSEWarning = false;
 
         function toggleSettings() {
             const menu = document.getElementById('settingsMenu');
@@ -62,19 +82,24 @@
             }
         }
 
-        function toggleDarkMode() {
-            const html = document.documentElement;
-            const isDark = html.classList.toggle('dark');
-            const toggle = document.getElementById('darkModeToggle');
-            const knob = document.getElementById('darkModeToggleKnob');
+        function toggleLucaMode() {
+            const toggle = document.getElementById('lucaModeToggle');
+            const knob = document.getElementById('lucaModeToggleKnob');
+            const questionText = document.querySelector('.text-2xl.mb-5');
+            const isLuca = toggle.classList.toggle('bg-rainbow');
 
-            if (isDark) {
+            if (isLuca) {
                 toggle.classList.add('bg-blue-600');
                 knob.classList.add('translate-x-5');
+                questionText.textContent = 'are you gay?';
+                window.isLucaMode = true;
             } else {
                 toggle.classList.remove('bg-blue-600');
                 knob.classList.remove('translate-x-5');
+                questionText.textContent = 'are you a fish?';
+                window.isLucaMode = false;
             }
+            resetAll();
         }
 
         // Add click outside handler for settings menu
@@ -183,7 +208,7 @@
             
             // Update result text
             const resultElement = document.getElementById('result');
-            resultElement.textContent = isYes ? 'fishy flopper' : 'LIE DETECTED';
+            resultElement.textContent = isYes ? (window.isLucaMode ? 'damn, but i already knew' : 'fishy flopper') : 'LIE DETECTED';
             resultElement.classList.remove('opacity-0');
             void resultElement.offsetWidth;
             resultElement.classList.add('opacity-100');
@@ -194,38 +219,60 @@
                 const audio2 = document.getElementById('audio2');
                 const audio3 = document.getElementById('audio3');
                 
-                const onEnded = () => {
-                    audio3.play().catch(error => {
-                        console.warn('Audio playback failed:', error);
-                    });
-                    audio2.removeEventListener('ended', onEnded);
-                };
-                
-                audio2.addEventListener('ended', onEnded);
-                audio2.play().catch(error => {
-                    console.warn('Audio playback failed:', error);
-                });
-
-                // Create flying lies
-                for (let i = 0; i < 10; i++) {
-                    setTimeout(() => createFlyingLie(), i * 200);
-                }
-            } else {
-                yesButton.classList.add('hidden');
-                const audio = document.getElementById('lieAudio');
-                let playCount = 0;
-                
-                const playAudioRepeatedly = () => {
-                    if (playCount < 5) {
-                        audio.currentTime = 0;
-                        audio.play().catch(error => {
+                if (window.isLucaMode) {
+                    if (!hasShownPSEWarning) {
+                        showPSEWarning();
+                        hasShownPSEWarning = true;
+                    } else {
+                        proceedWithPSE();
+                    }
+                    function showPSEWarning() {
+                        const warning = document.getElementById('pseWarning');
+                        const countdown = document.getElementById('pseCountdown');
+                        warning.classList.remove('hidden');
+                        let seconds = 3;
+                        countdown.textContent = `proceeding in ${seconds} seconds...`;
+                        window.pseCountdown = setInterval(() => {
+                            seconds--;
+                            if (seconds > 0) {
+                                countdown.textContent = `proceeding in ${seconds} seconds...`;
+                            } else {
+                                clearInterval(window.pseCountdown);
+                                proceedWithPSE();
+                            }
+                        }, 1000);
+                    }
+                    
+                    function proceedWithPSE() {
+                        document.getElementById('pseWarning').classList.add('hidden');
+                        let hue = 0;
+                        window.rainbowInterval = setInterval(() => {
+                            document.body.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
+                            hue = (hue + 10) % 360;
+                        }, 100);
+                    }
+                    // Create flying lies after showing warning
+                    for (let i = 0; i < 10; i++) {
+                        setTimeout(() => createFlyingLie(), i * 200);
+                    }
+                } else {
+                    const onEnded = () => {
+                        audio3.play().catch(error => {
                             console.warn('Audio playback failed:', error);
                         });
-                        playCount++;
-                        setTimeout(playAudioRepeatedly, 1000);
+                        audio2.removeEventListener('ended', onEnded);
+                    };
+                    
+                    audio2.addEventListener('ended', onEnded);
+                    audio2.play().catch(error => {
+                        console.warn('Audio playback failed:', error);
+                    });
+
+                    // Create flying lies for normal mode
+                    for (let i = 0; i < 10; i++) {
+                        setTimeout(() => createFlyingLie(), i * 200);
                     }
-                };
-                playAudioRepeatedly();
+                }
             }
         }
 
@@ -260,6 +307,14 @@
             const highestTimeoutId = setTimeout(() => {});
             for (let i = 0; i < highestTimeoutId; i++) {
                 clearTimeout(i);
+            }
+            if (window.rainbowInterval) {
+                clearInterval(window.rainbowInterval);
+                if (pseCountdown) {
+                    clearInterval(pseCountdown);
+                }
+                document.getElementById('pseWarning').classList.add('hidden');
+                document.body.style.backgroundColor = '';  // Reset to default
             }
         }
     </script>
