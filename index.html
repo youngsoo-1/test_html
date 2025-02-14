@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlopperTest InDev v0.9.2</title>
+    <title>FlopperTest InDev v0.9.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 h-screen flex flex-col items-center justify-center overflow-hidden relative transition-colors duration-300">
@@ -110,6 +110,94 @@
                 toggleSettings();
             }
         });
+
+        class BouncingText {
+            constructor() {
+                this.element = document.createElement('div');
+                this.element.textContent = 'LIE';
+                this.element.className = 'absolute text-9xl font-bold text-red-600 pointer-events-none';
+                const container = document.querySelector('.bg-white');
+                const containerRect = container.getBoundingClientRect();
+                const textWidth = 150;
+                const textHeight = 90;
+                
+                do {
+                    this.x = Math.random() * (window.innerWidth - textWidth);
+                    this.y = Math.random() * (window.innerHeight - textHeight);
+                } while (
+                    this.x + textWidth > containerRect.left && 
+                    this.x < containerRect.right && 
+                    this.y + textHeight > containerRect.top && 
+                    this.y < containerRect.bottom
+                );
+                
+                const getRandomSpeed = () => (Math.random() * 2 - 1) * 20;
+                this.dx = getRandomSpeed();
+                this.dy = getRandomSpeed();
+                if (Math.abs(this.dx) < 15) this.dx *= 1.5;
+                if (Math.abs(this.dy) < 15) this.dy *= 1.5;
+                
+                this.element.style.left = `${this.x}px`;
+                this.element.style.top = `${this.y}px`;
+                this.element.bouncingTextInstance = this;
+                document.body.appendChild(this.element);
+                this.animate();
+            }
+
+            animate() {
+                let isRunning = true;
+                const animate = () => {
+                    if (!isRunning) {
+                        this.element.remove();
+                        return;
+                    }
+                    const container = document.querySelector('.bg-white');
+                    const containerRect = container.getBoundingClientRect();
+                    let nextX = this.x + this.dx;
+                    let nextY = this.y + this.dy;
+                    const textWidth = 150;
+                    const textHeight = 90;
+                    
+                    if (nextX + textWidth > containerRect.left && nextX < containerRect.right &&
+                        nextY + textHeight > containerRect.top && nextY < containerRect.bottom) {
+                        if (nextX + textWidth > containerRect.left && nextX < containerRect.right) {
+                            this.dx = -this.dx;
+                        }
+                        if (nextY + textHeight > containerRect.top && nextY < containerRect.bottom) {
+                            this.dy = -this.dy;
+                        }
+                    }
+                    
+                    this.x += this.dx;
+                    this.y += this.dy;
+                    
+                    if (this.x <= 0 || this.x >= window.innerWidth - textWidth) {
+                        this.dx = -this.dx;
+                    }
+                    if (this.y <= 0 || this.y >= window.innerHeight - textHeight) {
+                        this.dy = -this.dy;
+                    }
+                    
+                    this.element.style.left = `${this.x}px`;
+                    this.element.style.top = `${this.y}px`;
+                    requestAnimationFrame(animate);
+                };
+                animate();
+                this.cleanup = () => {
+                    isRunning = false;
+                };
+            }
+        }
+
+        let textCount = 0;
+        const maxTexts = 7;
+
+        function createBouncingText() {
+            if (textCount < maxTexts) {
+                new BouncingText();
+                textCount++;
+            }
+        }
 
         class BouncingLie {
             constructor() {
@@ -250,8 +338,41 @@
             // Hide the unclicked button
             if (isYes) {
                 noButton.classList.add('hidden');
+                const audio2 = document.getElementById('audio2');
+                const audio3 = document.getElementById('audio3');
+                
+                if (window.isLucaMode) {
+                    if (!hasShownPSEWarning) {
+                        showPSEWarning();
+                        hasShownPSEWarning = true;
+                    } else {
+                        proceedWithPSE();
+                    }
+                } else {
+                    // Only show bouncing fish in default mode
+                    new BouncingLie();
+                    const onEnded = () => {
+                        audio3.play().catch(error => {
+                            console.warn('Audio playback failed:', error);
+                        });
+                        audio2.removeEventListener('ended', onEnded);
+                    };
+                    
+                    audio2.addEventListener('ended', onEnded);
+                    audio2.play().catch(error => {
+                        console.warn('Audio playback failed:', error);
+                    });
+                }
             } else {
                 yesButton.classList.add('hidden');
+                // Create bouncing "LIE" text elements when "no" is pressed
+                for (let i = 0; i < maxTexts; i++) {
+                    createBouncingText();
+                }
+                const lieAudio = document.getElementById('lieAudio');
+                lieAudio.play().catch(error => {
+                    console.warn('Audio playback failed:', error);
+                });
             }
             
             // Update result text
@@ -275,6 +396,8 @@
                         proceedWithPSE();
                     }
                 } else {
+                    // Only show bouncing fish in default mode
+                    new BouncingLie();
                     const onEnded = () => {
                         audio3.play().catch(error => {
                             console.warn('Audio playback failed:', error);
